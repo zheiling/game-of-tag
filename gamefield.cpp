@@ -2,8 +2,8 @@
 #include <cstdlib>
 #include "fieldbutton.h"
 
-GameField::GameField() {
-    data = new DataContainer();
+GameField::GameField(DataContainer *a_data) {
+    data = a_data;
     genValPositions();
     for (int line = 0; line < 4; line++) {
         for (int col = 0; col < 4; col++) {
@@ -91,6 +91,11 @@ void GameField::doStep(bool is_redo, bool &redo, bool &undo) {
 }
 
 void GameField::redoStep(bool &redo, bool &undo) {
+    return doStep(true, redo, undo);
+}
+
+void GameField::redoStep() {
+    bool redo, undo; // заглушки
     return doStep(true, redo, undo);
 }
 

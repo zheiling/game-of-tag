@@ -1,8 +1,6 @@
-# TODO
-- [x] Добавить нижнюю панель с временем текущего сеанса и кол-вом ходом
-- [x] Реализовать сохранение, отматывание ходов
-- [x] Реализовать создание сессии по сиду
-- [ ] Реализовать сохранение сесси в файл
-- [x] Реализовать проверку ситуации конца игры (и с поздравлением игрока)
-- [x] Тултипы
-- [ ] Реализовать возможность кликать не по ближнему блоку (перемещать несколько объектов сразу)
+# Game of tag
+A simplified version of Game of Tag
+
+In order to open / save session it uses pseudo-JSON format - the fields can only appear in a certain order.
+## TODO
+- [ ] Implement the ability to click on other than the nearest block (move several objects at once)

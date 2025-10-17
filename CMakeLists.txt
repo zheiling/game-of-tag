@@ -13,7 +13,7 @@ add_executable(1023 main.cpp
     README.md
     datacontainer.h datacontainer.cpp
     bottompanel.h bottompanel.cpp
-    savefile.h savefile.cpp
+
     .gitignore)
 target_link_libraries(1023 PRIVATE fltk fltk_forms fltk_images fltk_gl)
 
