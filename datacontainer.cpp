@@ -89,11 +89,7 @@ void process_o_field(o_field_t *field, data_struct *data) {
     }
     if (!strcmp(field->name, n_steps)) {
         data->steps = (unsigned char *) field->data;
-        free(field->name);
-        return;
     }
-    free(field->data);
-    free(field->name);
 }
 
 void DataContainer::openSessionFile(GameField *gf) {
@@ -126,6 +122,7 @@ void DataContainer::openSessionFile(GameField *gf) {
         ofield = parse_json_field(f_local, f_size, fields);
         if (ofield == NULL) break;
         process_o_field(ofield, &data);
+        clear_json_field(ofield);
     }
 
     // TODO: checking for the feasibility of the steps

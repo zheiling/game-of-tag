@@ -8,7 +8,7 @@ extern "C" {
 typedef enum {
   ERR,
   J_INT,    // int
-  J_TIME,    // time_t
+  J_TIME,   // time_t
   J_CHAR,   // char
   J_STRING, // char[]
   J_A_INT,  // int[]
@@ -18,6 +18,7 @@ typedef enum {
 typedef struct {
   char *name;
   void *data; // parsed data;
+  f_type type;
 } o_field_t;
 
 typedef struct {
@@ -26,6 +27,7 @@ typedef struct {
 } i_field_t;
 
 o_field_t *parse_json_field(char *str, int s_size, i_field_t types[]);
+void clear_json_field(o_field_t *field);
 
 #ifdef __cplusplus
 }

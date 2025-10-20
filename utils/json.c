@@ -8,9 +8,9 @@
 extern "C" {
 #endif
 
-static f_type detect_field_type(char *cur_field, i_field_t types[]) {
+static f_type detect_field_type(char *cur_field_name, i_field_t types[]) {
   for (int i = 0; types[i].name; i++) {
-    if (!strcmp(types[i].name, cur_field)) {
+    if (!strcmp(types[i].name, cur_field_name)) {
       return types[i].type;
     }
   }
@@ -79,8 +79,8 @@ static int parse_char_arr(char *str, o_field_t *field) {
   return i;
 }
 
-static int parse_data(char *str, f_type type, o_field_t *field) {
-  switch (type) {
+static int parse_data(char *str, o_field_t *field) {
+  switch (field->type) {
   case J_INT:
     return parse_int(str, field);
   case J_A_CHAR:
@@ -95,6 +95,22 @@ static int parse_data(char *str, f_type type, o_field_t *field) {
     break;
   }
   return 0;
+}
+
+void clear_json_field(o_field_t *field) {
+  switch (field->type) {
+  case J_INT:
+  case J_TIME:
+  case J_CHAR:
+  case J_A_INT:
+    free(field->data);
+  case J_A_CHAR:
+  case J_STRING:
+    free(field->name);
+  case ERR:
+    break;
+  }
+  free(field);
 }
 
 o_field_t *parse_json_field(char *str, int s_size, i_field_t types[]) {
@@ -129,11 +145,11 @@ o_field_t *parse_json_field(char *str, int s_size, i_field_t types[]) {
   for (; str[idx] != ':' && (idx < s_size); idx++)
     ;
   idx++;
-  f_type cur_type = detect_field_type(name, types);
   field_ptr = malloc(sizeof(o_field_t));
+  field_ptr->type = detect_field_type(name, types);
   field_ptr->name = malloc(sizeof(char) * (strlen(name) + 1));
   strcpy(field_ptr->name, name);
-  idx += parse_data(str+idx, cur_type, field_ptr);
+  idx += parse_data(str+idx, field_ptr);
   return field_ptr;
 }
 
