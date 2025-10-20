@@ -1,3 +1,10 @@
+#ifndef JSON_PARSER_H
+#define JSON_PARSER_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
   ERR,
   J_INT,    // int
@@ -19,3 +26,9 @@ typedef struct {
 } i_field_t;
 
 o_field_t *parse_json_field(char *str, int s_size, i_field_t types[]);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

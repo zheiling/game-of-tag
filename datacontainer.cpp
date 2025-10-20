@@ -7,9 +7,7 @@
 #include "datacontainer.h"
 #include "common.h"
 #include "gamefield.h"
-extern "C" {
-    #include "utils/json.h"
-}
+#include "utils/json.h"
 
 #define ERR_READ_FILE "Error while reading the file!"
 

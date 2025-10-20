@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static f_type detect_field_type(char *cur_field, i_field_t types[]) {
   for (int i = 0; types[i].name; i++) {
     if (!strcmp(types[i].name, cur_field)) {
@@ -132,3 +136,7 @@ o_field_t *parse_json_field(char *str, int s_size, i_field_t types[]) {
   idx += parse_data(str+idx, cur_type, field_ptr);
   return field_ptr;
 }
+
+#ifdef __cplusplus
+  }
+#endif
