@@ -1,12 +1,15 @@
 #include <FL/Fl_File_Chooser.H>
 #include <FL/fl_ask.H>
-#include <cctype>
 #include <cerrno>
 #include <fcntl.h>
+#include <cstring>
 
 #include "datacontainer.h"
 #include "common.h"
 #include "gamefield.h"
+extern "C" {
+    #include "utils/json.h"
+}
 
 #define ERR_READ_FILE "Error while reading the file!"
 
@@ -57,15 +60,52 @@ time_t DataContainer::getSessionTime() {
     return c_time - t_start;
 }
 
+static char n_seed[] = "seed";
+static char n_steps[] = "steps";
+static char n_time[] = "time";
+static char n_current[] = "current";
+
+static i_field_t fields[] = {
+    {.name = n_seed, .type = J_INT},
+    {.name = n_steps, .type = J_A_CHAR},
+    {.name = n_time, .type = J_TIME},
+    {.name = n_current, .type = J_INT},
+};
+
+typedef struct {
+    int seed;
+    int current;
+    unsigned char *steps;
+    time_t time;
+} data_struct;
+
+void process_o_field(o_field_t *field, data_struct *data) {
+    if (!strcmp(field->name, n_seed)) {
+        mempcpy(&(data->seed), field->data, sizeof(int));
+    }
+    if (!strcmp(field->name, n_time)) {
+        mempcpy(&(data->time), field->data, sizeof(time_t));
+    }
+    if (!strcmp(field->name, n_current)) {
+        mempcpy(&(data->current), field->data, sizeof(int));
+    }
+    if (!strcmp(field->name, n_steps)) {
+        data->steps = (unsigned char *) field->data;
+        free(field->name);
+        return;
+    }
+    free(field->data);
+    free(field->name);
+}
+
 void DataContainer::openSessionFile(GameField *gf) {
+    data_struct data = {.seed = 0, .current = 0, .steps = 0, .time = 0};
     char *fname = fl_file_chooser("Choose session file", "*.json", 0);
     FILE *f = fopen(fname, "r");
     if (!f) {
         fl_alert("Can't open the file!");
         return;
     }
-    time_t ctime;
-    int cseed, n_read, ccur_idx, clast_idx;
     fseek(f, 0, SEEK_END);
     size_t f_size = ftell(f);
     rewind(f);
@@ -81,49 +121,29 @@ void DataContainer::openSessionFile(GameField *gf) {
     char *f_local = new char[f_size];
     fread(f_local, 1, f_size, f);
     fclose(f);
-    int res = sscanf(f_local, "{ \"seed\": %d, \"time\" : %ld, \"steps\" : [%n",
-                     &cseed, &ctime, &n_read);
-    if (res < 2) {
-        delete[] f_local;
-        fl_alert(ERR_READ_FILE);
-        return;
+
+    o_field_t *ofield;
+
+    for (;;) {
+        ofield = parse_json_field(f_local, f_size, fields);
+        if (ofield == NULL) break;
+        process_o_field(ofield, &data);
     }
-    unsigned char c = 0;
-    clast_idx = 0;
-    for (int i = n_read-1;i++;) {
-        switch(f_local[i]) {
-        case ',':
-            steps[clast_idx++] = c;
-            c = 0;
-            continue;
-        case ']':
-            steps[clast_idx++] = c;
-            n_read = i+1;
-            goto exit_loop;
-        default:
-            if (isspace(f_local[i])) continue;
-            c = c * 10 + f_local[i] - '0';
-        }
-    }
-exit_loop:
-    // TODO: проверка на выполнимость шагов
-    res = sscanf(f_local+n_read, ", \"current\": %d", &ccur_idx);
-    if (clast_idx < ccur_idx) {
-        fl_alert("Data in the file is not correct");
-        return;
-    }
-    if (res < 1) {
-        fl_alert(ERR_READ_FILE);
-    }
+
+    // TODO: checking for the feasibility of the steps
     delete[] f_local;
 
-    seed = cseed;
-    last_idx = clast_idx;
-    steps[last_idx] = 0;
-    t_start = time(0) - ctime;
+    seed = data.seed;
+    if (!data.steps) return;
+    int steps_count = strlen((char *) data.steps);
+    last_idx = steps_count-1;
+    mempcpy(steps, data.steps, steps_count);
+    free(data.steps);
+    t_start = time(0) - data.time;
+    cur_idx = 0;
     gf->genValPositions();
-    gf->syncButtons(); // TODO: сделать синхронизацию и выполнение шагов виртуальным
-    for (int i=ccur_idx; i>0; i--) {
+    gf->syncButtons(); // TODO: make synchronization and step execution virtual
+    for (int i=data.current; i>0; i--) {
         gf->redoStep();
     }
 }
