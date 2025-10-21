@@ -10,25 +10,41 @@ class DataContainer
     friend class GameField;
     friend class TopPanel;
     friend class FieldButton;
+
     unsigned char steps[10000];
+
     int last_idx = 0;
     int cur_idx = 0;
     int seed;
     time_t t_start;
+
+    int val_matrix[4][4];
+    int empty_pos[2]; // empty button position
+    void findEmptyPosition();
 public:
+    void   genValPositions(int seed);
+    void   genValPositions();
+    void setEmptyPos(int x, int y) {
+        empty_pos[0] = x;
+        empty_pos[1] = y;
+    }
     DataContainer() {time(&t_start); seed = (int) t_start;};
+    ~DataContainer() {};
+    bool redoStep();
+    void getEmptyPosition(int &x, int &y) {x = empty_pos[0]; y = empty_pos[1];}
     void addStep(struct step_val *sv, bool &redo, bool &undo);
     void undoStep(int &ebt_x, int &ebt_y, bool &redo, bool &undo);
     void redoStep(int &ebt_x, int &ebt_y, bool &redo, bool &undo);
-    int  getStepsCount() {return last_idx;}
-    int  getCurrentStep() {return cur_idx;}
     void resetSteps() {last_idx=0; cur_idx=0; time(&t_start);}
-    int  genNewSeed() {return seed = time(0);}
-    int  getCurrentSeed() const {return seed;}
-    time_t getSessionTime();
     void openSessionFile(GameField *gf);
     void saveSessionFile();
-    ~DataContainer() {};
+    int  getStepsCount() {return last_idx;}
+    int  getCurrentStep() {return cur_idx;}
+    int  genNewSeed() {return seed = time(0);}
+    int  getCurrentSeed() const {return seed;}
+    void setValue(int x, int y, int v);
+    bool swapWithEmpty(int x, int y);
+    time_t getSessionTime();
 };
 
 #endif // DATACONTAINER_H

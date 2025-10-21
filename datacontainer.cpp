@@ -11,6 +11,35 @@
 
 #define ERR_READ_FILE "Error while reading the file!"
 
+void DataContainer::setValue(int x, int y, int v) {
+    val_matrix[x][y] = v;
+    if (v == -1) setEmptyPos(x, y);
+}
+
+bool DataContainer::swapWithEmpty(int x, int y) {
+    int ex, ey;
+    getEmptyPosition(ex, ey);
+    if (!abs(ex - x) || !abs(ey - y)) {
+        int vx, vy;
+        if (abs(ex - x)) {
+            for (int i = ex - x; i != 0; i > 0 ? i-- : i++) {
+                vx = i < 0 ? ex + 1 : ex - 1;
+                setValue(ex, ey, val_matrix[vx][y]);
+                setValue(vx, ey, -1);
+                ex += vx - ex;
+            }
+        } else {
+            for (int i = ey - y; i != 0; i > 0 ? i-- : i++) {
+                vy = i < 0 ? ey + 1 : ey - 1;
+                setValue(ex, ey, val_matrix[x][vy]);
+                setValue(ex, vy, -1);
+                ey += vy - ey;
+            }
+        }
+        return true;
+    } else return false;
+}
+
 void DataContainer::addStep(struct step_val *sv, bool &redo, bool &undo) {
     int ebt_fidx = sv->e.y * 4 + sv->e.x;
     int vbt_fidx = sv->v.y * 4 + sv->v.x;
@@ -37,6 +66,7 @@ void DataContainer::undoStep(int &ebt_x, int &ebt_y, bool &redo, bool &undo) {
     extract_button_bidxs(val, &sv);
     ebt_x = sv.e.x;
     ebt_y = sv.e.y;
+    swapWithEmpty(sv.e.x, sv.e.y);
     redo = cur_idx < last_idx;
     undo = cur_idx > 0;
 }
@@ -49,13 +79,71 @@ void DataContainer::redoStep(int &vbt_x, int &vbt_y, bool &redo, bool &undo) {
     vbt_x = sv.v.x;
     vbt_y = sv.v.y;
     cur_idx++;
+    swapWithEmpty(sv.v.x, sv.v.y);
     redo = cur_idx < last_idx;
     undo = cur_idx > 0;
+}
+
+bool DataContainer::redoStep() {
+    if (cur_idx == last_idx) return true;
+    int val = (int) steps[cur_idx];
+    struct step_val sv;
+    extract_button_bidxs(val, &sv);
+    if (!swapWithEmpty(sv.v.x, sv.v.y)) return false;
+    cur_idx++;
+    return true;
 }
 
 time_t DataContainer::getSessionTime() {
     time_t c_time = time(0);
     return c_time - t_start;
+}
+
+static int extractFromArray(int idx, char *arr) {
+    int result = arr[idx];
+    int i = idx;
+    for (; arr[i] || i==0; i++) arr[i] = arr[i+1];
+    arr[i-1] = 0;
+    return result;
+}
+
+void DataContainer::genValPositions(int seed) {
+    srand(seed);
+    char empt_idxs[17];
+    for (int i=0; i<16; i++) empt_idxs[i] = i;
+    empt_idxs[16] = 0;
+
+    for(int i=0; i<16; i++) {
+        int x, y;
+        if (i == 15) {
+            x = empt_idxs[0] / 4;
+            y = empt_idxs[0] % 4;
+            val_matrix[x][y]=-1;
+            break;
+        }
+        int e_idx = rand() % (16-i);
+        int m_idx = extractFromArray(e_idx, empt_idxs);
+        x = m_idx / 4;
+        y = m_idx % 4;
+        int val = i - 1;
+        if (val == -1) val++;
+        val_matrix[x][y]=val;
+    }
+}
+
+void DataContainer::genValPositions() {
+    genValPositions(seed);
+}
+
+void DataContainer::findEmptyPosition() {
+    for (int x = 0; x < 4; x++) {
+        for (int y = 0; y < 4; y++) {
+            if (val_matrix[x][y] == -1) {
+                setEmptyPos(x, y);
+                break;
+            }
+        }
+    }
 }
 
 static char n_seed[] = "seed";
@@ -125,7 +213,6 @@ void DataContainer::openSessionFile(GameField *gf) {
         clear_json_field(ofield);
     }
 
-    // TODO: checking for the feasibility of the steps
     delete[] f_local;
 
     seed = data.seed;
@@ -136,11 +223,18 @@ void DataContainer::openSessionFile(GameField *gf) {
     free(data.steps);
     t_start = time(0) - data.time;
     cur_idx = 0;
-    gf->genValPositions();
-    gf->syncButtons(); // TODO: make synchronization and step execution virtual
+    genValPositions();
+    findEmptyPosition();
     for (int i=data.current; i>0; i--) {
-        gf->redoStep();
+        if (!redoStep()) {
+            fl_alert("Corrupted steps history!");
+            genValPositions(); // gen again
+            cur_idx = 0;
+            last_idx = 0;
+            break;
+        }
     }
+    gf->syncButtons();
 }
 
 void DataContainer::saveSessionFile() {

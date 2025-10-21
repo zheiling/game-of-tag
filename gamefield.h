@@ -10,23 +10,14 @@ class TopPanel;
 class GameField {
     friend class FieldButton;
     FieldButton *button_matrix[4][4];
-    int val_matrix[4][4];
-    int empty_pos[2]; // empty button position
     DataContainer *data;
     TopPanel *top_panel;
     BottomPanel *bottom_panel;
-    void setEmptyPos(int x, int y) {
-        empty_pos[0] = x;
-        empty_pos[1] = y;
-    }
     bool swapWithEmpty(FieldButton *);
-    FieldButton *getEmptyButton() const {return button_matrix[empty_pos[0]][empty_pos[1]];}
+    FieldButton *getEmptyButton() const;
     FieldButton *getButton(int x, int y) const {return button_matrix[x][y];}
     void doStep(bool is_redo, bool &redo, bool &undo);
-    void getEmptyPosition(int &x, int &y) {x = empty_pos[0]; y = empty_pos[1];}
 public:
-    void   genValPositions(int seed);
-    void   genValPositions();
     void   syncButtons();
     void   undoStep(bool &redo, bool &undo);
     void   redoStep(bool &redo, bool &undo);

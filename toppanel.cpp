@@ -14,7 +14,7 @@ void TopPanel::newCallback(Fl_Widget *w, void *user) {
     } else {
         seed = atoi(seed_input);
     }
-    tp->gf->genValPositions(seed);
+    tp->data->genValPositions(seed);
     tp->gf->syncButtons();
     tp->gf->resetSteps();
     tp->updateDoButtonStatuses(false, false);
@@ -53,7 +53,7 @@ void TopPanel::undoCallback(Fl_Widget *w, void *user) {
 
 void TopPanel::reloadCallback(Fl_Widget *w, void *user) {
     TopPanel *tp = (TopPanel*) user;
-    tp->gf->genValPositions(tp->data->getCurrentSeed());
+    tp->data->genValPositions(tp->data->getCurrentSeed());
     tp->gf->syncButtons();
     tp->gf->resetSteps();
     tp->updateDoButtonStatuses(false, false);

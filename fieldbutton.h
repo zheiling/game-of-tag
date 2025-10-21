@@ -7,6 +7,7 @@ class FieldButton {
     friend class GameField;
     int x, y, v;
     GameField *gf;
+    DataContainer *data;
     Fl_Button* b_ptr;
     FieldButton(int a_x, int a_y, int a_v, GameField *a_gptr);
     ~FieldButton();
