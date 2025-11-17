@@ -22,12 +22,6 @@ class DataContainer
     int empty_pos[2]; // empty button position
     void findEmptyPosition();
 public:
-    void   genValPositions(int seed);
-    void   genValPositions();
-    void setEmptyPos(int x, int y) {
-        empty_pos[0] = x;
-        empty_pos[1] = y;
-    }
     DataContainer() {time(&t_start); seed = (int) t_start;};
     ~DataContainer() {};
     bool redoStep();
@@ -43,6 +37,12 @@ public:
     int  genNewSeed() {return seed = time(0);}
     int  getCurrentSeed() const {return seed;}
     void setValue(int x, int y, int v);
+    void genValPositions(int seed);
+    void genValPositions();
+    void setEmptyPos(int x, int y) {
+        empty_pos[0] = x;
+        empty_pos[1] = y;
+    }
     bool swapWithEmpty(int x, int y);
     time_t getSessionTime();
 };

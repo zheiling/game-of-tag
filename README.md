@@ -9,3 +9,4 @@ It uses "C with Classes" paradigm.
 - [x] Gameplay: Implement the ability to click on other than the nearest block (move several objects at once)
 - [x] Save/Load: Check for the feasibility of the steps on load the save
 - [x] Save/Load: Make synchronization and step execution virtual
+- [x] Breaks down when entering a new seed

@@ -119,6 +119,7 @@ void DataContainer::genValPositions(int seed) {
             x = empt_idxs[0] / 4;
             y = empt_idxs[0] % 4;
             val_matrix[x][y]=-1;
+            setEmptyPos(x, y);
             break;
         }
         int e_idx = rand() % (16-i);
